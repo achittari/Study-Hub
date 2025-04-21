@@ -12,19 +12,6 @@ const MemberRow = ({ member }) => (
 export default function MemberList() {
   const [members, setMembers] = useState([]);
 
-  /*useEffect(() => {
-    async function fetchMembers() {
-      try {
-        const response = await fetch("http://localhost:5050/member/");
-        if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-        const data = await response.json();
-        setMembers(data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    fetchMembers();
-  }, []);*/
   useEffect(() => {
     async function fetchMembers() {
       try {
