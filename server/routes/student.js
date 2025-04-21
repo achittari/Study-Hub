@@ -128,40 +128,38 @@ router.patch("/:id", validateStudent, handleValidationErrors, async (req, res) =
 
 // This section will help you delete a student
 router.delete("/:id", async (req, res) => {
-  try {
-    const studentId = new ObjectId(req.params.id);
+  const studentId = req.params.id;
+  const studentCollection = db.collection("students");
+  const membersCollection = db.collection("members");
 
-    // Find the student first to get their email (since ObjectIds will differ)
-    const studentCollection = db.collection("students");
-    const student = await studentCollection.findOne({ _id: studentId });
+  try {
+    const studentQuery = { _id: new ObjectId(studentId) };
+    const student = await studentCollection.findOne(studentQuery);
 
     if (!student) {
       return res.status(404).send("Student not found");
     }
 
-    // Delete the student from the 'students' collection
-    const studentQuery = { _id: studentId };
-    let studentResult = await studentCollection.deleteOne(studentQuery);
+    // 1. Delete the student
+    const studentDeleteResult = await studentCollection.deleteOne(studentQuery);
 
-    if (studentResult.deletedCount === 0) {
-      return res.status(404).send("Student not found");
+    // 2. Delete corresponding member by matching email (case-insensitive)
+    let memberDeleteResult = { deletedCount: 0 };
+    if (student.email) {
+      memberDeleteResult = await membersCollection.deleteOne({
+        email: { $regex: `^${student.email}$`, $options: "i" },
+      });
     }
 
-    // Now delete the corresponding member using the student's email
-    const memberQuery = { email: student.email }; // Use the student's email to find the member
-    const memberCollection = db.collection("members");
-    let memberResult = await memberCollection.deleteOne(memberQuery);
-
-    if (memberResult.deletedCount === 0) {
-      return res.status(404).send("Member not found");
-    }
-
-    res.status(200).send("Student and corresponding member deleted successfully");
+    res.status(200).json({
+      message: "Student and associated member deleted",
+      studentDeleted: studentDeleteResult.deletedCount,
+      memberDeleted: memberDeleteResult.deletedCount,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error deleting student and member");
+    console.error("Error deleting student:", err);
+    res.status(500).send("Error deleting student");
   }
 });
-
 
 export default router;

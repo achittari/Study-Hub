@@ -66,6 +66,7 @@ export default function StudentList() {
     });
     const newStudents = students.filter((el) => el._id !== id);
     setStudents(newStudents);
+    window.dispatchEvent(new Event("membersUpdated"));
   }
 
   // This method will map out the students on the table

@@ -173,6 +173,7 @@ router.patch("/:id", async (req, res) => {
 
 
 // This section will help you delete a tutor.
+// This section will help you delete a tutor.
 router.delete("/:id", async (req, res) => {
   const tutorId = req.params.id;
   const sessionCollection = db.collection("sessions");
@@ -193,8 +194,13 @@ router.delete("/:id", async (req, res) => {
     // 2. Delete the tutor
     const tutorDeleteResult = await tutorCollection.deleteOne(tutorQuery);
 
-    // 3. Delete corresponding member by matching email
-    const memberDeleteResult = await membersCollection.deleteOne({ email: tutor.email });
+    // 3. Delete corresponding member by matching email (case-insensitive)
+    let memberDeleteResult = { deletedCount: 0 };
+    if (tutor.email) {
+      memberDeleteResult = await membersCollection.deleteOne({
+        email: { $regex: `^${tutor.email}$`, $options: "i" },
+      });
+    }
 
     res.status(200).json({
       message: "Tutor and associated member deleted",
@@ -206,6 +212,7 @@ router.delete("/:id", async (req, res) => {
     res.status(500).send("Error deleting tutor");
   }
 });
+
 
 
 

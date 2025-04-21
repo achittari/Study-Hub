@@ -69,6 +69,7 @@ const TutorList = () => {
         method: "DELETE",
       });
       setTutors((prevTutors) => prevTutors.filter((tutor) => tutor._id !== id));
+      window.dispatchEvent(new Event("membersUpdated"));
     } catch (error) {
       console.error("Failed to delete tutor:", error);
     }

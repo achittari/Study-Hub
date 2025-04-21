@@ -12,7 +12,7 @@ const MemberRow = ({ member }) => (
 export default function MemberList() {
   const [members, setMembers] = useState([]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     async function fetchMembers() {
       try {
         const response = await fetch("http://localhost:5050/member/");
@@ -24,7 +24,30 @@ export default function MemberList() {
       }
     }
     fetchMembers();
+  }, []);*/
+  useEffect(() => {
+    async function fetchMembers() {
+      try {
+        const response = await fetch("http://localhost:5050/member/");
+        if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+        const data = await response.json();
+        setMembers(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  
+    fetchMembers(); // initial load
+  
+    // 👇 Listen for external changes (like tutor deletion)
+    const handleUpdate = () => fetchMembers();
+    window.addEventListener("membersUpdated", handleUpdate);
+  
+    return () => {
+      window.removeEventListener("membersUpdated", handleUpdate);
+    };
   }, []);
+  
 
   return (
     <>
