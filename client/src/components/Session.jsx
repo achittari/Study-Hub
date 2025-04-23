@@ -18,78 +18,41 @@ export default function Session() {
   const params = useParams();
   const navigate = useNavigate();
 
-  {/*useEffect(() => {
-    async function fetchData() {
-      const id = params.id?.toString();
-      if (!id) return;
-      setIsNew(false);
-      const response = await fetch(`http://localhost:5050/session/${id}`);
-      if (!response.ok) {
-        console.error(`An error has occurred: ${response.statusText}`);
-        return;
-      }
-      const session = await response.json();
-      if (!session) {
-        console.warn(`Session with id ${id} not found`);
-        navigate("/");
-        return;
-      }
-      setForm(session);
-
-        // Fetch students data
-      try {
-        const studentRes = await fetch("http://localhost:5050/api/students"); // Adjust endpoint if needed
-        const students = await studentRes.json();
-        setStudents(students); // Assuming students is an array of objects with a 'name' property
-      } catch (err) {
-        console.error("Failed to fetch students", err);
-      }
-    }
-    fetchData();
-  }, [params.id, navigate]);*/}
   useEffect(() => {
     async function fetchData() {
-      // Fetch session data
       const id = params.id?.toString();
-      if (!id) return;
-  
-      setIsNew(false);
-      const response = await fetch(`http://localhost:5050/session/${id}`);
-      if (!response.ok) {
-        console.error(`An error has occurred: ${response.statusText}`);
-        return;
+      if (id) {
+        setIsNew(false);
+        const response = await fetch(`http://localhost:5050/session/${id}`);
+        if (response.ok) {
+          const session = await response.json();
+          setForm(session);
+        } else {
+          console.error(`Failed to fetch session: ${response.statusText}`);
+          navigate("/");
+          return;
+        }
       }
   
-      const session = await response.json();
-      if (!session) {
-        console.warn(`Session with id ${id} not found`);
-        navigate("/");
-        return;
-      }
-  
-      setForm(session); // Set session data in state
-  
-      // Fetch students data
       try {
-        const studentRes = await fetch("http://localhost:5050/students"); // Adjust endpoint if needed
+        const studentRes = await fetch("http://localhost:5050/students");
         const students = await studentRes.json();
-        setStudents(students); // Assuming students is an array of objects with a 'name' property
+        setStudents(students);
       } catch (err) {
         console.error("Failed to fetch students", err);
       }
-
-      // Fetch students data
+  
       try {
-        const tutorRes = await fetch("http://localhost:5050/tutors"); // Adjust endpoint if needed
+        const tutorRes = await fetch("http://localhost:5050/tutors");
         const tutors = await tutorRes.json();
-        setStudents(tutors); // Assuming tutors is an array of objects with a 'name' property
+        setTutors(tutors); // ✅ FIXED: now tutors go into their own state
       } catch (err) {
-        console.error("Failed to fetch students", err);
+        console.error("Failed to fetch tutors", err);
       }
     }
   
     fetchData();
-  }, [params.id, navigate]);  // This will rerun the effect if `params.id` or `navigate` changes
+  }, [params.id, navigate]);
   
 
   function updateForm(value) {
@@ -136,17 +99,6 @@ export default function Session() {
           </div>
 
           <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8">
-            {/*<div className="sm:col-span-4">
-              <label htmlFor="student" className="block text-sm font-medium leading-6 text-slate-900">Student</label>
-              <input
-                type="text"
-                id="student"
-                className="block w-full rounded-md border-0 bg-transparent py-1.5 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-600"
-                placeholder="First Last"
-                value={form.student}
-                onChange={(e) => updateForm({ student: e.target.value })}
-              />
-  </div>*/}
               <div className="sm:col-span-4">
               <label htmlFor="student" className="block text-sm font-medium leading-6 text-slate-900">Student</label>
               <select
@@ -177,19 +129,10 @@ export default function Session() {
               />
             </div>
 
-           {/*} <div className="sm:col-span-4">
-              <label htmlFor="tutor" className="block text-sm font-medium leading-6 text-slate-900">Tutor</label>
-              <input
-                type="text"
-                id="tutor"
-                className="block w-full rounded-md border-0 bg-transparent py-1.5 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-600"
-                placeholder="@purdue.edu"
-                value={form.tutor}
-                onChange={(e) => updateForm({ tutor: e.target.value })}
-              />
-                </div>*/}
-             <div className="sm:col-span-4">
-              <label htmlFor="tutor" className="block text-sm font-medium leading-6 text-slate-900">Tutor</label>
+            <div className="sm:col-span-4">
+              <label htmlFor="tutor" className="block text-sm font-medium leading-6 text-slate-900">
+                Tutor
+              </label>
               <select
                 id="tutor"
                 className="block w-full rounded-md border-0 bg-transparent py-1.5 text-slate-900 focus:ring-indigo-600"
@@ -204,6 +147,7 @@ export default function Session() {
                 ))}
               </select>
             </div>
+
 
             <div className="sm:col-span-4">
               <label htmlFor="tutorEmail" className="block text-sm font-medium leading-6 text-slate-900">Tutor Email</label>
