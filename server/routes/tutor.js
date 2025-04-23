@@ -1,18 +1,12 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
+import Tutor from "../models/tutorModel.js"; // Importing the Tutor model
+import Member from "../models/memberModel.js"; // Importing the Member model
 
-// This will help us connect to the database
-import db from "../db/connection.js";
-
-// This helps convert the id from string to ObjectId for the _id.
-import { ObjectId } from "mongodb";
-
-// router is an instance of the express router.
-// We use it to define our routes.
-// The router will be added as a middleware and will take control of requests starting with path /tutors.
+// Router instance to define routes
 const router = express.Router();
 
-// validation for prepared statements
+// Validation for the tutor schema
 const validateTutor = [
   body("name").isString().notEmpty().withMessage("Name is required and must be a string"),
   body("email").isEmail().withMessage("Email must be a valid email address"),
@@ -28,184 +22,128 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// This section will help you get a list of all the tutors.
+// Get all tutors
 router.get("/", async (req, res) => {
   try {
-    let collection = await db.collection("tutors");
-    let results = await collection.find({}).toArray();
-    res.send(results).status(200);
+    const tutors = await Tutor.find(); // Mongoose query to find all tutors
+    res.status(200).json(tutors);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error retrieving tutors");
   }
 });
 
-// This section will help you get a single tutor by id
+// Get a single tutor by id
 router.get("/:id", async (req, res) => {
   try {
-    let collection = await db.collection("tutors");
-    let query = { _id: new ObjectId(req.params.id) };
-    let result = await collection.findOne(query);
-
-    if (!result) res.send("Not found").status(404);
-    else res.send(result).status(200);
+    const tutor = await Tutor.findById(req.params.id); // Mongoose query to find tutor by ID
+    if (!tutor) {
+      return res.status(404).send("Tutor not found");
+    }
+    res.status(200).json(tutor);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error retrieving tutor");
   }
 });
 
-// This section will help you create a new tutor.
+// Create a new tutor
 router.post("/", validateTutor, handleValidationErrors, async (req, res) => {
   try {
-    let newTutor = {
-      name: req.body.name,
-      email: req.body.email,
-      expertise: req.body.expertise,
-    };
+    const { name, email, expertise } = req.body;
 
-    // Insert the tutor into the tutors collection
-    let collection = await db.collection("tutors");
-    let result = await collection.insertOne(newTutor);
+    // Create a new Tutor
+    const newTutor = new Tutor({
+      name,
+      email,
+      expertise,
+    });
 
-    // After inserting the tutor, add the tutor to the members collection with role 'tutor'
-    const newMember = {
-      name: req.body.name,
-      email: req.body.email,
-      role: "tutor", // Hardcoding the role as 'tutor'
-    };
-    const membersCollection = db.collection("members");
-    await membersCollection.insertOne(newMember);
+    // Save the tutor to the database
+    await newTutor.save();
 
-    res.send(result).status(201);
+    // After creating the tutor, add them to the members collection with role 'tutor'
+    const newMember = new Member({
+      name,
+      email,
+      role: "tutor",
+    });
+
+    await newMember.save(); // Save the new member to the members collection
+
+    res.status(201).json(newTutor); // Send the created tutor as response
   } catch (err) {
     console.error(err);
     res.status(500).send("Error adding tutor");
   }
 });
 
-/*/ This section will help you update a tutor by id.
-/router.patch("/:id", async (req, res) => {
-  const tutorId = req.params.id;
-  const { name, email, expertise } = req.body;
-
-  try {
-    const query = { _id: new ObjectId(tutorId) };
-    const updates = {
-      $set: {
-        name,
-        email,
-        expertise,
-      },
-    };
-
-    let collection = await db.collection("tutors");
-    let result = await collection.updateOne(query, updates);
-
-    // After updating the tutor, we should also update the corresponding member in the members collection
-   /* let memberCollection = await db.collection("members")
-    let memberResult = await memberCollection.updateOne(query, updates);*/
-   /* const memberQuery = { email }; // Search for the member by email
-    const memberUpdates = {
-      $set: {
-        name,
-        email,
-        role: "tutor", // Ensure the role is 'tutor' even after update
-      },
-    };
-    let memcollection = await db.collection("members");
-    let memresult = await memcollection.updateOne(query, updates);
-   /*const membersCollection = db.collection("members");
-    await membersCollection.updateOne(memberQuery, memberUpdates);*/
-  /*  res.send(result).status(200);
-    res.send(memresult).status(200)
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error updating tutor");
-  }
-});*/
-
+// Update a tutor by id
 router.patch("/:id", async (req, res) => {
-  const tutorId = req.params.id;
   const { name, email, expertise } = req.body;
-
   try {
-    const tutorCollection = db.collection("tutors");
-    const memberCollection = db.collection("members");
-    const query = { _id: new ObjectId(tutorId) };
-
-    // Step 1: Find the original tutor to get old email
-    const originalTutor = await tutorCollection.findOne(query);
-    if (!originalTutor) {
+    // Fetch the tutor data first to get the previous email
+    const tutor = await Tutor.findById(req.params.id);
+    if (!tutor) {
       return res.status(404).send("Tutor not found");
     }
 
-    const oldEmail = originalTutor.email;
+    const oldEmail = tutor.email; // Store the old email before updating
+    console.log("Old tutor email: ", oldEmail); // Log the old email for debugging
 
-    // Step 2: Update the tutor in the tutors collection
-    const tutorUpdates = {
-      $set: { name, email, expertise },
-    };
-    const tutorResult = await tutorCollection.updateOne(query, tutorUpdates);
+    // Update the tutor in the tutor collection
+    tutor.name = name || tutor.name;
+    tutor.email = email || tutor.email;
+    tutor.expertise = expertise || tutor.expertise;
+    await tutor.save();
 
-    // Step 3: Update the corresponding member using old email
-    const memberQuery = { email: oldEmail };
-    const memberUpdates = {
-      $set: {
-        name,
-        email,
-        role: "tutor",
-      },
-    };
-    const memberResult = await memberCollection.updateOne(memberQuery, memberUpdates);
+    // Update the corresponding member in the members collection using the old email
+    const updatedMember = await Member.findOneAndUpdate(
+      { email: oldEmail }, // Search for the member with the old email
+      { $set: { name: tutor.name, email: tutor.email, role: "tutor" } }, // Update the member with the new tutor details
+      { new: true }
+    );
 
-    res.status(200).json({
-      message: "Tutor and member updated",
-      tutorModified: tutorResult.modifiedCount,
-      memberModified: memberResult.modifiedCount,
-    });
+    // Verify if the member update was successful
+    if (!updatedMember) {
+      console.warn(`Member with email ${oldEmail} not found or not updated`);
+      return res.status(404).send(`Member with email ${oldEmail} not found or not updated`);
+    } else {
+      console.log(`Member with email ${oldEmail} successfully updated to new email ${tutor.email}`);
+    }
+
+    // Send success response with the updated tutor
+    res.status(200).json(tutor);
   } catch (err) {
     console.error("Error updating tutor:", err);
     res.status(500).send("Error updating tutor");
   }
 });
 
-
-
-// This section will help you delete a tutor.
-// This section will help you delete a tutor.
+// Delete a tutor by id
 router.delete("/:id", async (req, res) => {
-  const tutorId = req.params.id;
-  const sessionCollection = db.collection("sessions");
-  const tutorCollection = db.collection("tutors");
-  const membersCollection = db.collection("members");
-
   try {
-    const tutorQuery = { _id: new ObjectId(tutorId) };
-    const tutor = await tutorCollection.findOne(tutorQuery);
-
+    // Find the tutor to delete
+    const tutor = await Tutor.findById(req.params.id);
     if (!tutor) {
       return res.status(404).send("Tutor not found");
     }
 
-    // 1. Delete sessions associated with the tutor
-    await sessionCollection.deleteMany({ tutor: tutorId });
+    // Delete the tutor from the tutors collection
+    const tutorDeleteResult = await Tutor.findByIdAndDelete(req.params.id);
 
-    // 2. Delete the tutor
-    const tutorDeleteResult = await tutorCollection.deleteOne(tutorQuery);
-
-    // 3. Delete corresponding member by matching email (case-insensitive)
+    // Delete the corresponding member from the members collection
     let memberDeleteResult = { deletedCount: 0 };
     if (tutor.email) {
-      memberDeleteResult = await membersCollection.deleteOne({
-        email: { $regex: `^${tutor.email}$`, $options: "i" },
-      });
+      const result = await Member.deleteOne({ email: tutor.email });
+      memberDeleteResult.deletedCount = result.deletedCount;
     }
 
+    // Return a success response with deletion results
     res.status(200).json({
       message: "Tutor and associated member deleted",
-      tutorDeleted: tutorDeleteResult.deletedCount,
-      memberDeleted: memberDeleteResult.deletedCount,
+      tutorDeleted: tutorDeleteResult ? true : false,
+      memberDeleted: memberDeleteResult.deletedCount > 0,
     });
   } catch (err) {
     console.error("Error deleting tutor:", err);
@@ -214,6 +152,5 @@ router.delete("/:id", async (req, res) => {
 });
 
 
-
-
 export default router;
+

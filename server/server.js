@@ -4,6 +4,7 @@ import students from "./routes/student.js";
 import tutors from "./routes/tutor.js";
 import sessions from "./routes/session.js";
 import members from "./routes/member.js";
+import "./db/connection.js";
 
 
 
@@ -12,8 +13,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/students", students);
-app.use("/tutors", tutors);
+app.use("/student", students);
+app.use("/tutor", tutors);
 app.use("/session", sessions);
 app.use("/member", members);
 

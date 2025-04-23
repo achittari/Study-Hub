@@ -35,7 +35,7 @@ export default function Session() {
       }
   
       try {
-        const studentRes = await fetch("http://localhost:5050/students");
+        const studentRes = await fetch("http://localhost:5050/student");
         const students = await studentRes.json();
         setStudents(students);
       } catch (err) {
@@ -43,7 +43,7 @@ export default function Session() {
       }
   
       try {
-        const tutorRes = await fetch("http://localhost:5050/tutors");
+        const tutorRes = await fetch("http://localhost:5050/tutor");
         const tutors = await tutorRes.json();
         setTutors(tutors); // ✅ FIXED: now tutors go into their own state
       } catch (err) {

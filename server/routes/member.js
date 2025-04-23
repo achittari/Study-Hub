@@ -1,11 +1,6 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
-
-// This will help us connect to the database
-import db from "../db/connection.js";
-
-// This helps convert the id from string to ObjectId for the _id
-import { ObjectId } from "mongodb";
+import Member from "../models/memberModel.js"; // Import the Mongoose model
 
 // Router instance to define routes
 const router = express.Router();
@@ -29,9 +24,8 @@ const handleValidationErrors = (req, res, next) => {
 // Get all members
 router.get("/", async (req, res) => {
   try {
-    let collection = await db.collection("members");
-    let results = await collection.find({}).toArray();
-    res.status(200).send(results);
+    const members = await Member.find(); // Using Mongoose ORM to query all members
+    res.status(200).json(members); // Return members as JSON
   } catch (err) {
     console.error(err);
     res.status(500).send("Error retrieving members");
@@ -41,13 +35,11 @@ router.get("/", async (req, res) => {
 // Get a single member by id
 router.get("/:id", async (req, res) => {
   try {
-    let collection = await db.collection("members");
-    let query = { _id: new ObjectId(req.params.id) };
-    let result = await collection.findOne(query);
-    if (!result) {
+    const member = await Member.findById(req.params.id); // Find member by id using Mongoose
+    if (!member) {
       return res.status(404).send("Member not found");
     }
-    res.status(200).send(result);
+    res.status(200).json(member); // Return member data as JSON
   } catch (err) {
     console.error(err);
     res.status(500).send("Error retrieving member");
@@ -57,15 +49,18 @@ router.get("/:id", async (req, res) => {
 // Create a new member
 router.post("/", validateMember, handleValidationErrors, async (req, res) => {
   try {
-    let newMember = {
-      name: req.body.name,
-      email: req.body.email,
-      role: req.body.role,
-    };
+    const { name, email, role } = req.body;
 
-    let collection = await db.collection("members");
-    let result = await collection.insertOne(newMember);
-    res.status(201).send(result);
+    // Create a new Member document using Mongoose
+    const newMember = new Member({
+      name,
+      email,
+      role,
+    });
+
+    // Save the new member to the database
+    const result = await newMember.save();
+    res.status(201).json(result); // Return the saved member data
   } catch (err) {
     console.error(err);
     res.status(500).send("Error adding member");
@@ -75,40 +70,41 @@ router.post("/", validateMember, handleValidationErrors, async (req, res) => {
 // Update a member by id
 router.patch("/:id", validateMember, handleValidationErrors, async (req, res) => {
   try {
-    const query = { _id: new ObjectId(req.params.id) };
     const updates = {
-      $set: {
-        name: req.body.name,
-        email: req.body.email,
-        role: req.body.role,
-      },
+      name: req.body.name,
+      email: req.body.email,
+      role: req.body.role,
     };
 
-    let collection = await db.collection("members");
-    let result = await collection.updateOne(query, updates);
-    if (result.matchedCount === 0) {
+    // Find the member by id and update using Mongoose
+    const member = await Member.findByIdAndUpdate(req.params.id, updates, {
+      new: true, // Return the updated member
+    });
+
+    if (!member) {
       return res.status(404).send("Member not found");
     }
-    res.status(200).send(result);
+
+    res.status(200).json(member); // Return the updated member data
   } catch (err) {
     console.error(err);
     res.status(500).send("Error updating member");
   }
 });
 
-// Delete a member by id
+// Delete a member by email
 router.delete("/member/:email", async (req, res) => {
-  const email = req.params.email;
-  const membersCollection = db.collection("members");
-
   try {
-    const result = await membersCollection.deleteOne({ email });
-    res.status(200).json({ deletedCount: result.deletedCount });
+    // Delete member by email using Mongoose
+    const result = await Member.deleteOne({ email: req.params.email });
+    if (result.deletedCount === 0) {
+      return res.status(404).send("Member not found");
+    }
+    res.status(200).json({ deletedCount: result.deletedCount }); // Return count of deleted documents
   } catch (err) {
     console.error("Error deleting member:", err);
     res.status(500).send("Error deleting member");
   }
 });
-
 
 export default router;
