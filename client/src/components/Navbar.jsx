@@ -96,6 +96,14 @@ disabled:pointer-events-none disabled:opacity-50 border border-green-600 bg-gree
           >
             Add Session
           </NavLink>
+          <NavLink
+className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors 
+focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 
+disabled:pointer-events-none disabled:opacity-50 border border-orange-600 bg-orange-100 text-orange-800 hover:bg-orange-200 h-9 rounded-md px-3"
+            to="/filter-session"
+          >
+            Filter Sessions
+          </NavLink>
         </div>
       </nav>
     </div>

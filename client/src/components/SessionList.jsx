@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 
 const SessionRow = ({ session, deleteSession }) => (
   <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-    <td className="p-4 align-middle">{session.student}</td>
-    <td className="p-4 align-middle">{session.studentEmail}</td>
-    <td className="p-4 align-middle">{session.tutor}</td>
-    <td className="p-4 align-middle">{session.tutorEmail}</td>
+    {/* Render student's name and email */}
+    <td className="p-4 align-middle">{session.student.name}</td>
+    <td className="p-4 align-middle">{session.student.email}</td>
+    {/* Render tutor's name and email */}
+    <td className="p-4 align-middle">{session.tutor.name}</td>
+    <td className="p-4 align-middle">{session.tutor.email}</td>
     <td className="p-4 align-middle">{session.subject}</td>
     <td className="p-4 align-middle">{session.time}</td>
     <td className="p-4 align-middle">{session.day}</td>

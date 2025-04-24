@@ -11,7 +11,8 @@ import StudentList from "./components/StudentList";
 import Student from "./components/Student";
 import SessionList from "./components/SessionList";
 import Session from "./components/Session";
-import MemberList from "./components/MemberList"; // Import the MemberList component
+import MemberList from "./components/MemberList";   
+import Filter from "./components/Filter";
 
 import "./index.css";
 
@@ -90,6 +91,16 @@ const router = createBrowserRouter([
       {
         path: "/create-session",
         element: <Session />,
+      },
+    ],
+  },
+  {
+    path: "/filter-session",
+    element: <App />,
+    children: [
+      {
+        path: "/filter-session",
+        element: <Filter />,
       },
     ],
   },
