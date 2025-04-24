@@ -35,10 +35,48 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Get all sessions
+// Get all sessions with filtering options
 router.get("/", async (req, res) => {
+  const {
+    student,
+    tutor,
+    subject,
+    day,
+    time,
+    duration,
+  } = req.query;
+
   try {
-    const sessions = await Session.find(); // Mongoose query to find all sessions
+    const filter = {};
+
+    // Add filters to the query if they are provided
+    if (student) {
+      filter["student.name"] = { $regex: student, $options: "i" }; // case-insensitive search
+    }
+    if (tutor) {
+      filter["tutor.name"] = { $regex: tutor, $options: "i" }; // case-insensitive search
+    }
+    if (subject) {
+      filter.subject = { $regex: subject, $options: "i" }; // case-insensitive search
+    }
+    if (day) {
+      if (!dayRegex.test(day)) {
+        return res.status(400).send("Invalid date format for 'day'");
+      }
+      filter.day = day;
+    }
+    if (time) {
+      if (!timeRegex.test(time)) {
+        return res.status(400).send("Invalid time format for 'time'");
+      }
+      filter.time = time;
+    }
+    if (duration) {
+      filter.duration = { $regex: duration, $options: "i" }; // case-insensitive search
+    }
+
+    const sessions = await Session.find(filter); // Mongoose query with filter
+
     res.status(200).json(sessions);
   } catch (err) {
     console.error(err);
@@ -85,7 +123,6 @@ router.post("/", validateSession, handleValidationErrors, async (req, res) => {
   }
 });
 
-// Update a session by id
 // Update a session by id
 router.patch("/:id", validateSession, handleValidationErrors, async (req, res) => {
   const { student, studentEmail, tutor, tutorEmail, subject, time, day, duration } = req.body;

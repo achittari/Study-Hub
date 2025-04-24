@@ -35,10 +35,25 @@ export default function Report() {
     fetchFilteredSessions();
   }, [location.search]);
 
+  // Calculate average duration
+  const averageDuration = sessions.reduce((total, session) => {
+    const duration = parseInt(session.duration);
+    return total + (isNaN(duration) ? 0 : duration);
+  }, 0) / sessions.length;
+
+  // Calculate number of entries that match the filter
+  const numberOfEntries = sessions.length;
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Filtered Sessions Report</h2>
+      </div>
+
+      {/* Statistics Display */}
+      <div className="mb-4">
+        <p><strong>Average Duration:</strong> {isNaN(averageDuration) ? "N/A" : averageDuration.toFixed(2)} min</p>
+        <p><strong>Number of Entries that Match Filter:</strong> {numberOfEntries}</p>
       </div>
 
       {loading ? (
@@ -59,27 +74,26 @@ export default function Report() {
             </tr>
           </thead>
           <tbody>
-        {sessions.map((session) => (
-            <tr key={session._id} className="hover:bg-gray-50">
-            <td className="py-2 px-4 border-b">{session.student?.name || "N/A"}</td>
-            <td className="py-2 px-4 border-b">{session.student?.email || "N/A"}</td>
-            <td className="py-2 px-4 border-b">{session.tutor?.name || "N/A"}</td>
-            <td className="py-2 px-4 border-b">{session.tutor?.email || "N/A"}</td>
-            <td className="py-2 px-4 border-b">{session.subject}</td>
-            <td className="py-2 px-4 border-b">{session.duration}</td>
-            <td className="py-2 px-4 border-b">
-                {session.day && !isNaN(new Date(session.day))
-                ? new Date(session.day).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    })
-                : "Invalid Date"}
-            </td>
-            </tr>
-        ))}
-        </tbody>
-
+            {sessions.map((session) => (
+              <tr key={session._id} className="hover:bg-gray-50">
+                <td className="py-2 px-4 border-b">{session.student?.name || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{session.student?.email || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{session.tutor?.name || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{session.tutor?.email || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{session.subject}</td>
+                <td className="py-2 px-4 border-b">{session.duration}</td>
+                <td className="py-2 px-4 border-b">
+                  {session.day && !isNaN(new Date(session.day))
+                    ? new Date(session.day).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "Invalid Date"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>
