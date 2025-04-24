@@ -42,8 +42,8 @@ export default function FilterSessions() {
     const queryParams = new URLSearchParams();
     if (form.student) queryParams.append("student", form.student);
     if (form.tutor) queryParams.append("tutor", form.tutor);
-    if (form.subject) queryParams.append("subject", form.subject);
-    if (form.minDuration) queryParams.append("minDuration", form.minDuration);
+    if (form.subject.trim()) queryParams.append("subject", form.subject.trim());
+    if (form.minDuration) queryParams.append("minDuration", parseInt(form.minDuration));
 
     navigate(`/report?${queryParams.toString()}`);
   }

@@ -13,6 +13,8 @@ import SessionList from "./components/SessionList";
 import Session from "./components/Session";
 import MemberList from "./components/MemberList";   
 import Filter from "./components/Filter";
+import Report from "./components/Report"; 
+
 
 import "./index.css";
 
@@ -101,6 +103,16 @@ const router = createBrowserRouter([
       {
         path: "/filter-session",
         element: <Filter />,
+      },
+    ],
+  },
+  {
+    path: "/report",
+    element: <App />,
+    children: [
+      {
+        path: "/report",
+        element: <Report />,
       },
     ],
   },
