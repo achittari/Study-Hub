@@ -1,7 +1,7 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
 import Student from "../models/studentModel.js";
-import Member from "../models/memberModel.js"; // Assuming you’ll also make a Mongoose model for members
+import Member from "../models/memberModel.js"; 
 
 const router = express.Router();
 

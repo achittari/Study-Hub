@@ -26,12 +26,18 @@ export default function Session() {
         const response = await fetch(`http://localhost:5050/session/${id}`);
         if (response.ok) {
           const session = await response.json();
-          setForm(session);
-        } else {
-          console.error(`Failed to fetch session: ${response.statusText}`);
-          navigate("/");
-          return;
+          setForm({
+            student: session.student?.name || "",
+            studentEmail: session.student?.email || "",
+            tutor: session.tutor?.name || "",
+            tutorEmail: session.tutor?.email || "",
+            subject: session.subject || "",
+            time: session.time || "",
+            day: session.day || "",
+            duration: session.duration || "",
+          });
         }
+        
       }
   
       try {
