@@ -72,7 +72,7 @@ router.get("/", async (req, res) => {
       filter.time = time;
     }
     if (duration) {
-      filter.duration = { $regex: duration, $options: "i" }; // case-insensitive search
+      filter.duration = { $regex: minDuration, $options: "i" }; // case-insensitive search
     }
 
     const sessions = await Session.find(filter); // Mongoose query with filter
@@ -83,6 +83,7 @@ router.get("/", async (req, res) => {
     res.status(500).send("Error fetching sessions");
   }
 });
+
 
 // Get a single session by id
 router.get("/:id", async (req, res) => {

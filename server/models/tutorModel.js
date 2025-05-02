@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const tutorSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true }, // Ensure email is unique
+  email: { type: String, required: true},// unique: true }, // Ensure email is unique
   expertise: { type: String, required: true }
 
 });

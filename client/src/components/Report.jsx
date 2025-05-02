@@ -24,7 +24,20 @@ export default function Report() {
         const query = location.search; // already starts with `?`
         const res = await fetch(`http://localhost:5050/session${query}`);
         const data = await res.json();
-        setSessions(data);
+        
+        // Apply additional filtering for minDuration here
+        const filters = getQueryParams();
+        const minDuration = parseInt(filters.minDuration); // get the value from URL query
+
+        if (minDuration) {
+          const filteredSessions = data.filter(session => {
+            const duration = parseInt(session.duration);
+            return !isNaN(duration) && duration >= minDuration;
+          });
+          setSessions(filteredSessions);
+        } else {
+          setSessions(data);
+        }
       } catch (err) {
         console.error("Error fetching sessions:", err);
       } finally {

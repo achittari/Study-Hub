@@ -15,10 +15,10 @@ const sessionSchema = new mongoose.Schema({
   duration: { type: String, required: true }
 });
 
-sessionSchema.index({ subject: 1 }); 
-sessionSchema.index({ day: 1 });  
-sessionSchema.index({ "student.email": 1 });
+sessionSchema.index({ subject: 1 })
 sessionSchema.index({ "tutor.email": 1 });
+sessionSchema.index({ "student.email": 1 });
+sessionSchema.index({ duration: 1 });
 
 const Session = mongoose.model("Session", sessionSchema);
 
